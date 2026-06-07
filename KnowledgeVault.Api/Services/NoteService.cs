@@ -18,6 +18,13 @@ public class NoteService(AppDbContext db)
 
     public async Task<Note> CreateAsync(string title, string content)
     {
+        var exists = await db.Notes.AnyAsync(n => n.Title == title);
+
+        if (exists)
+        {
+            throw new InvalidOperationException("Title must be unique.");
+        }
+        
         var note = new Note
         {
             Id = Guid.NewGuid(),

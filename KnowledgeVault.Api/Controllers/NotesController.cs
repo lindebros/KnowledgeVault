@@ -32,21 +32,17 @@ public class NotesController(NoteService service) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<NoteResponse>> Create(CreateNoteRequest request)
     {
-        var created = await service.CreateAsync(
-            request.Title,
-            request.Content);
-
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = created.Id },
-            new NoteResponse
-            {
-                Id = created.Id,
-                Title = created.Title,
-                Content = created.Content,
-                CreatedAt = created.CreatedAt,
-                UpdatedAt = created.UpdatedAt
-            });
+        try
+        {
+            var created = await service.CreateAsync(
+                request.Title,
+                request.Content);
+            return Ok(created);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPut("{id:guid}")]
