@@ -3,6 +3,7 @@ using KnowledgeVault.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace KnowledgeVault.Api.Tests;
 
@@ -21,9 +22,16 @@ public class NoteServiceTests
     public async Task CreateNote_ShouldPersistNote()
     {
         var db = CreateDb();
+        
+        var options = Options.Create(new NoteSettings
+        {
+            MaxTitleLength = 200
+        });
 
-        var service = new NoteService(db, 
-            NullLogger<NoteService>.Instance);
+        var service = new NoteService(
+            db,
+            NullLogger<NoteService>.Instance,
+            options);
 
         var result = await service.CreateAsync(
             "Test",

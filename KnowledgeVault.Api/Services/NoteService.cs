@@ -1,11 +1,13 @@
 ﻿using KnowledgeVault.Api.Domain;
 using KnowledgeVault.Api.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace KnowledgeVault.Api.Services;
 
 public class NoteService(AppDbContext db,
-    ILogger<NoteService> logger)
+    ILogger<NoteService> logger,
+    IOptions<NoteSettings>  noteSettings)
 {
     public async Task<List<Note>> GetAllAsync()
     {
@@ -26,6 +28,11 @@ public class NoteService(AppDbContext db,
         if (exists)
         {
             throw new InvalidOperationException("Title must be unique.");
+        }
+
+        if (title.Length > noteSettings.Value.MaxTitleLength)
+        {
+            throw new InvalidOperationException("Title length must be less than " + noteSettings.Value.MaxTitleLength);
         }
         
         var note = new Note

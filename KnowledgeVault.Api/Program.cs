@@ -10,7 +10,8 @@ namespace KnowledgeVault.Api
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
+            Console.WriteLine(
+                $"Environment: {builder.Environment.EnvironmentName}");
             // Controllers
             builder.Services.AddControllers();
             
@@ -19,7 +20,14 @@ namespace KnowledgeVault.Api
             
             // EF Core
             builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite("Data Source=knowledgevault.db"));
+            {
+                options.UseSqlite(
+                    builder.Configuration.GetConnectionString(
+                        "KnowledgeVault"));
+            });
+            
+            builder.Services.Configure<NoteSettings>(
+                builder.Configuration.GetSection("NoteSettings"));
 
             // Swagger
             builder.Services.AddEndpointsApiExplorer();
@@ -30,8 +38,11 @@ namespace KnowledgeVault.Api
             app.UseMiddleware<ExceptionHandlingMiddleware>();
             
             // Swagger UI
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            if (builder.Environment.IsDevelopment())
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI();
+            }
 
             app.UseHttpsRedirection();
 
