@@ -1,0 +1,90 @@
+﻿using KnowledgeVault.Api.Contracts.Requests;
+using KnowledgeVault.Api.Contracts.Responses;
+using KnowledgeVault.Api.Domain;
+using KnowledgeVault.Api.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace KnowledgeVault.Api.Controllers;
+
+[ApiController]
+[Route("api/v1/[controller]")]
+public class NotesController(NoteService service) : ControllerBase
+{
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<NoteResponse>>> GetAll()
+    {
+        var notes = await service.GetAllAsync();
+
+        return Ok(notes);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<NoteResponse>> GetById(Guid id)
+    {
+        var note = await service.GetByIdAsync(id);
+
+        if (note == null)
+            return NotFound();
+
+        return Ok(note);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<NoteResponse>> Create(CreateNoteRequest request)
+    {
+        var created = await service.CreateAsync(
+            request.Title,
+            request.Content);
+
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = created.Id },
+            new NoteResponse
+            {
+                Id = created.Id,
+                Title = created.Title,
+                Content = created.Content,
+                CreatedAt = created.CreatedAt,
+                UpdatedAt = created.UpdatedAt
+            });
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> Update(Guid id, UpdateNoteRequest request)
+    {
+        var updated = await service.UpdateAsync(
+            id,
+            request.Title,
+            request.Content);
+
+        if (updated == null)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var existing = await service.GetByIdAsync(id);
+
+        if (existing == null)
+            return NotFound();
+
+        await service.DeleteAsync(id);
+
+        return NoContent();
+    }
+
+    private static NoteResponse ToResponse(Note note)
+    {
+        return new NoteResponse
+        {
+            Id = note.Id,
+            Title = note.Title,
+            Content = note.Content,
+            CreatedAt = note.CreatedAt,
+            UpdatedAt = note.UpdatedAt
+        };
+    }
+}
