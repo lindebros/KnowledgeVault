@@ -2,7 +2,7 @@
 
 namespace KnowledgeVault.Api.Middleware;
 
-public class ExceptionHandlingMiddleware(RequestDelegate next)
+public class ExceptionHandlingMiddleware(RequestDelegate next,  ILogger<ExceptionHandlingMiddleware> logger)
 {
     public async Task InvokeAsync(
         HttpContext context)
@@ -22,8 +22,11 @@ public class ExceptionHandlingMiddleware(RequestDelegate next)
                     Message = ex.Message
                 });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            logger.LogError(
+                ex,
+                "Unhandled exception occurred while processing request");
             context.Response.StatusCode = 500;
 
             await context.Response.WriteAsJsonAsync(

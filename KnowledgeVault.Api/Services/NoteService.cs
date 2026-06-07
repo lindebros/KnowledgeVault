@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KnowledgeVault.Api.Services;
 
-public class NoteService(AppDbContext db)
+public class NoteService(AppDbContext db,
+    ILogger<NoteService> logger)
 {
     public async Task<List<Note>> GetAllAsync()
     {
@@ -13,11 +14,13 @@ public class NoteService(AppDbContext db)
 
     public async Task<Note?> GetByIdAsync(Guid id)
     {
+        logger.LogInformation("Getting note {NoteId}", id);
         return await db.Notes.FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<Note> CreateAsync(string title, string content)
     {
+        logger.LogInformation("Creating note with title {Title}", title);
         var exists = await db.Notes.AnyAsync(n => n.Title == title);
 
         if (exists)
@@ -37,11 +40,13 @@ public class NoteService(AppDbContext db)
         db.Notes.Add(note);
         await db.SaveChangesAsync();
 
+        logger.LogInformation("Note create with Id {NoteId}", note.Id);
         return note;
     }
     
     public async Task<Note?> UpdateAsync(Guid id, string title, string content)
     {
+        logger.LogInformation("Updating note {NoteId}", id);
         var note = await db.Notes.FindAsync(id);
 
         if (note == null)
@@ -58,6 +63,7 @@ public class NoteService(AppDbContext db)
 
     public async Task DeleteAsync(Guid id)
     {
+        logger.LogInformation("Deleting note {NoteId}", id);
         var note = await db.Notes.FindAsync(id);
         if (note != null)
         {

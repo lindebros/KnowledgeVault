@@ -8,11 +8,12 @@ namespace KnowledgeVault.Api.Controllers;
 
 [ApiController]
 [Route("api/v1/[controller]")]
-public class NotesController(NoteService service) : ControllerBase
+public class NotesController(NoteService service, ILogger<NotesController> logger) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IEnumerable<NoteResponse>>> GetAll()
     {
+        logger.LogInformation("HTTP GET /notes called");
         var notes = await service.GetAllAsync();
 
         return Ok(notes);
@@ -21,6 +22,7 @@ public class NotesController(NoteService service) : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<NoteResponse>> GetById(Guid id)
     {
+        logger.LogInformation("HTTP GET /notes/{Id} called", id);
         var note = await service.GetByIdAsync(id);
 
         if (note == null)
@@ -33,11 +35,18 @@ public class NotesController(NoteService service) : ControllerBase
     public async Task<ActionResult<NoteResponse>> Create(
         CreateNoteRequest request)
     {
+        logger.LogInformation(
+            "HTTP POST /notes called");
+        
         var created =
             await service.CreateAsync(
                 request.Title,
                 request.Content);
 
+        logger.LogInformation(
+            "Returning CreatedAtAction for note {Id}",
+            created.Id);
+        
         return CreatedAtAction(
             nameof(GetById),
             new { id = created.Id },
@@ -47,6 +56,7 @@ public class NotesController(NoteService service) : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, UpdateNoteRequest request)
     {
+        logger.LogInformation("HTTP PUT /notes/{Id} called", id);
         var updated = await service.UpdateAsync(
             id,
             request.Title,
@@ -61,6 +71,7 @@ public class NotesController(NoteService service) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
+        logger.LogInformation("HTTP DELETE /notes/{Id} called", id);
         var existing = await service.GetByIdAsync(id);
 
         if (existing == null)
