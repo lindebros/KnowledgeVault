@@ -13,6 +13,11 @@ KnowledgeVault.Api/Folder.DotSettings.user
 KnowledgeVault.Api/knowledgevault.db*
 KnowledgeVault.Api/Migrations/
 
+.idea/
+Folder.DotSettings.user
+KnowledgeVault.Api.Tests/bin/
+KnowledgeVault.Api.Tests/obj/
+
 # Common node modules locations
 KnowledgeVault/node_modules
 KnowledgeVault/wwwroot/node_modules

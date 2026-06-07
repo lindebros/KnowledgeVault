@@ -1,12 +1,11 @@
 ﻿using KnowledgeVault.Api.Middleware;
 using KnowledgeVault.Api.Persistence;
-using KnowledgeVault.Api.Repositories;
 using KnowledgeVault.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace KnowledgeVault.Api
 {
-    public class Program
+    public partial class Program
     {
         public static void Main(string[] args)
         {
