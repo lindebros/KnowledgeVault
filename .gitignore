@@ -11,9 +11,7 @@ KnowledgeVault.Api/.idea/
 KnowledgeVault.Api/Folder.DotSettings.user
 
 KnowledgeVault.Api/knowledgevault.db*
-KnowledgeVault.Api/Migrations/20260606155457_InitialCreate.Designer.cs
-KnowledgeVault.Api/Migrations/20260606155457_InitialCreate.cs
-KnowledgeVault.Api/Migrations/AppDbContextModelSnapshot.cs
+KnowledgeVault.Api/Migrations/
 
 # Common node modules locations
 KnowledgeVault/node_modules
