@@ -9,6 +9,12 @@ KnowledgeVault.Api/obj/
 KnowledgeVault.Api/.vs/
 KnowledgeVault.Api/.idea/
 
+
+KnowledgeVault.Api/knowledgevault.db
+KnowledgeVault.Api/Migrations/20260606155457_InitialCreate.Designer.cs
+KnowledgeVault.Api/Migrations/20260606155457_InitialCreate.cs
+KnowledgeVault.Api/Migrations/AppDbContextModelSnapshot.cs
+
 # Common node modules locations
 KnowledgeVault/node_modules
 KnowledgeVault/wwwroot/node_modules
