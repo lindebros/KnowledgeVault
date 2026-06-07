@@ -1,4 +1,5 @@
-﻿using KnowledgeVault.Api.Persistence;
+﻿using KnowledgeVault.Api.Middleware;
+using KnowledgeVault.Api.Persistence;
 using KnowledgeVault.Api.Repositories;
 using KnowledgeVault.Api.Services;
 using Microsoft.EntityFrameworkCore;
@@ -27,6 +28,8 @@ namespace KnowledgeVault.Api
 
             var app = builder.Build();
 
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+            
             // Swagger UI
             app.UseSwagger();
             app.UseSwaggerUI();
