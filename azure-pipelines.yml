@@ -1,0 +1,19 @@
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: UseDotNet@2
+    inputs:
+      version: '9.0.x'
+
+  - script: dotnet restore
+    displayName: Restore
+
+  - script: dotnet build --no-restore
+    displayName: Build
+
+  - script: dotnet test --no-build
+    displayName: Run Tests
