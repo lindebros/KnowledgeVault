@@ -19,11 +19,19 @@ namespace KnowledgeVault.Api
             builder.Services.AddScoped<NoteService>();
             
             // EF Core
-            builder.Services.AddDbContext<AppDbContext>(options =>
+            if (builder.Environment.IsEnvironment("Testing"))
             {
-                options.UseNpgsql(
-                    builder.Configuration.GetConnectionString("KnowledgeVault"));
-            });
+                builder.Services.AddDbContext<AppDbContext>(options =>
+                    options.UseSqlite("DataSource=:memory:"));
+            }
+            else
+            {
+                builder.Services.AddDbContext<AppDbContext>(options =>
+                {
+                    options.UseNpgsql(
+                        builder.Configuration.GetConnectionString("KnowledgeVault"));
+                });
+            }
             
             builder.Services.Configure<NoteSettings>(
                 builder.Configuration.GetSection("NoteSettings"));
