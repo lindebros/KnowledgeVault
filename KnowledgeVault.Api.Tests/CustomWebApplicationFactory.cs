@@ -3,6 +3,7 @@ using KnowledgeVault.Api.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 
@@ -23,6 +24,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
             services.AddDbContext<AppDbContext>(options =>
             {
                 options.UseNpgsql(_container.GetConnectionString());
+                options.ConfigureWarnings(w =>
+                    w.Ignore(RelationalEventId.PendingModelChangesWarning));
             });
         });
     }
