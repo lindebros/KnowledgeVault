@@ -17,3 +17,12 @@ steps:
 
   - script: dotnet test --no-build
     displayName: Run Tests
+    
+  - task: Docker@2
+    displayName: Build Docker Image
+    inputs:
+      command: build
+      repository: knowledgevault-api
+      Dockerfile: '**/Dockerfile'
+      tags: |
+        $(Build.BuildId)
