@@ -21,9 +21,8 @@ namespace KnowledgeVault.Api
             // EF Core
             builder.Services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseSqlite(
-                    builder.Configuration.GetConnectionString(
-                        "KnowledgeVault"));
+                options.UseNpgsql(
+                    builder.Configuration.GetConnectionString("KnowledgeVault"));
             });
             
             builder.Services.Configure<NoteSettings>(
@@ -43,11 +42,20 @@ namespace KnowledgeVault.Api
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
-            app.UseHttpsRedirection();
+            
+            if (!app.Environment.IsDevelopment())
+            {
+                app.UseHsts();
+            }
 
             app.MapControllers();
-
+            
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                db.Database.Migrate();
+            }
+            
             app.Run();
         }
     }
