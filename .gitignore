@@ -18,6 +18,7 @@ KnowledgeVault.Api/Migrations/
 Folder.DotSettings.user
 KnowledgeVault.Api.Tests/bin/
 KnowledgeVault.Api.Tests/obj/
+KnowledgeVault.sln.DotSettings.user
 
 # Common node modules locations
 KnowledgeVault/node_modules
