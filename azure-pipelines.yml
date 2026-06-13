@@ -8,7 +8,10 @@ steps:
   - task: UseDotNet@2
     inputs:
       version: '9.0.x'
-
+      
+  - script: ls -R
+    displayName: Show repo structure
+    
   - script: dotnet restore
     displayName: Restore
 
