@@ -1,4 +1,6 @@
-﻿using KnowledgeVault.Api.Domain;
+using KnowledgeVault.Api.Domain;
+using KnowledgeVault.Api.Events;
+using KnowledgeVault.Api.Events.Note;
 using KnowledgeVault.Api.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -7,7 +9,8 @@ namespace KnowledgeVault.Api.Services;
 
 public class NoteService(AppDbContext db,
     ILogger<NoteService> logger,
-    IOptions<NoteSettings>  noteSettings)
+    IOptions<NoteSettings>  noteSettings,
+    IEventBus? eventBus)
 {
     public async Task<List<Note>> GetAllAsync()
     {
@@ -48,6 +51,18 @@ public class NoteService(AppDbContext db,
         await db.SaveChangesAsync();
 
         logger.LogInformation("Note create with Id {NoteId}", note.Id);
+        
+        if (eventBus is not null)
+        {
+            await eventBus.PublishAsync(new NoteCreatedEvent
+            {
+                NoteId = note.Id,
+                Title = note.Title,
+                Content = note.Content,
+                CreatedAt = note.CreatedAt
+            });
+        }
+        
         return note;
     }
     
@@ -65,6 +80,17 @@ public class NoteService(AppDbContext db,
 
         await db.SaveChangesAsync();
 
+        if (eventBus is not null)
+        {
+            await eventBus.PublishAsync(new NoteUpdatedEvent
+            {
+                NoteId = note.Id,
+                Title = note.Title,
+                Content = note.Content,
+                UpdatedAt = note.UpdatedAt
+            });
+        }
+
         return note;
     }
 
@@ -76,6 +102,15 @@ public class NoteService(AppDbContext db,
         {
             db.Notes.Remove(note);
             await db.SaveChangesAsync();
+
+            if (eventBus is not null)
+            {
+                await eventBus.PublishAsync(new NoteDeletedEvent
+                {
+                    NoteId = id,
+                    DeletedAt = DateTime.UtcNow
+                });
+            }
         }
     }
 }
