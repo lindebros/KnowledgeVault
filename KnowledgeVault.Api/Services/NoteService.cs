@@ -1,3 +1,4 @@
+using System.Text.Json;
 using KnowledgeVault.Api.Domain;
 using KnowledgeVault.Api.Events;
 using KnowledgeVault.Api.Events.Note;
@@ -9,8 +10,7 @@ namespace KnowledgeVault.Api.Services;
 
 public class NoteService(AppDbContext db,
     ILogger<NoteService> logger,
-    IOptions<NoteSettings>  noteSettings,
-    IEventBus? eventBus)
+    IOptions<NoteSettings>  noteSettings)
 {
     public async Task<List<Note>> GetAllAsync()
     {
@@ -48,18 +48,17 @@ public class NoteService(AppDbContext db,
         };
 
         db.Notes.Add(note);
-        await db.SaveChangesAsync();
-
-        if (eventBus is not null)
+        
+        var createdEvent = new NoteCreatedEvent { NoteId = note.Id, Title = note.Title, Content = note.Content, CreatedAt = note.CreatedAt };
+        var outbox = new OutboxEvent
         {
-            await eventBus.PublishAsync(new NoteCreatedEvent
-            {
-                NoteId = note.Id,
-                Title = note.Title,
-                Content = note.Content,
-                CreatedAt = note.CreatedAt
-            });
-        }
+            EventType = createdEvent.GetType().AssemblyQualifiedName!,
+            Payload = JsonSerializer.Serialize(createdEvent),
+            OccurredAt = createdEvent.OccurredAt
+        };
+         db.OutboxEvents.Add(outbox);
+
+        await db.SaveChangesAsync();
         
         return note;
     }
@@ -75,19 +74,24 @@ public class NoteService(AppDbContext db,
         note.Title = title;
         note.Content = content;
         note.UpdatedAt = DateTime.UtcNow;
+        
+        var updatedEvent = new NoteUpdatedEvent
+        {
+            NoteId = note.Id,
+            Title = note.Title,
+            Content = note.Content,
+            UpdatedAt = note.UpdatedAt
+        };
+        var outbox = new OutboxEvent
+        {
+            EventType = updatedEvent.GetType().AssemblyQualifiedName!,
+            Payload = JsonSerializer.Serialize(updatedEvent),
+            OccurredAt = updatedEvent.OccurredAt
+        };
+        db.OutboxEvents.Add(outbox);
 
         await db.SaveChangesAsync();
 
-        if (eventBus is not null)
-        {
-            await eventBus.PublishAsync(new NoteUpdatedEvent
-            {
-                NoteId = note.Id,
-                Title = note.Title,
-                Content = note.Content,
-                UpdatedAt = note.UpdatedAt
-            });
-        }
 
         return note;
     }
@@ -99,16 +103,22 @@ public class NoteService(AppDbContext db,
         if (note != null)
         {
             db.Notes.Remove(note);
-            await db.SaveChangesAsync();
-
-            if (eventBus is not null)
+            
+            var noteDeletedEvent = new NoteDeletedEvent
             {
-                await eventBus.PublishAsync(new NoteDeletedEvent
-                {
-                    NoteId = id,
-                    DeletedAt = DateTime.UtcNow
-                });
-            }
+                NoteId = id,
+                DeletedAt = DateTime.UtcNow
+            };
+            
+            var outbox = new OutboxEvent
+            {
+                EventType = noteDeletedEvent.GetType().AssemblyQualifiedName!,
+                Payload = JsonSerializer.Serialize(noteDeletedEvent),
+                OccurredAt = noteDeletedEvent.OccurredAt
+            };
+            db.OutboxEvents.Add(outbox);
+            
+            await db.SaveChangesAsync();
         }
     }
 }

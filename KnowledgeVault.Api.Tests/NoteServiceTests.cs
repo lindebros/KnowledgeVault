@@ -29,19 +29,19 @@ public class NoteServiceTests
             MaxTitleLength = 200
         });
 
-        var bus = new FakeEventBus();
-        var service = new NoteService(db, NullLogger<NoteService>.Instance, options, bus);
+        var service = new NoteService(db, NullLogger<NoteService>.Instance, options);
 
         var result = await service.CreateAsync(
             "Test",
             "Content");
 
         Assert.NotEqual(Guid.Empty, result.Id);
-        Assert.Contains(bus.PublishedOf<NoteCreatedEvent>(), e => e.NoteId == result.Id);
 
         var saved = await db.Notes.FirstOrDefaultAsync();
-
+        var outboxEvent = await db.OutboxEvents.FirstOrDefaultAsync();        
         Assert.NotNull(saved);
         Assert.Equal("Test", saved!.Title);
+        Assert.NotNull(outboxEvent);
+        Assert.Contains("KnowledgeVault.Api.Events.Note.NoteCreatedEvent, KnowledgeVault.Api", outboxEvent.EventType);
     }
 }
