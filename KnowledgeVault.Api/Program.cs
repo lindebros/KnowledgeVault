@@ -19,6 +19,8 @@ namespace KnowledgeVault.Api
             
             // Register primitives
             builder.Services.AddScoped<NoteService>();
+            builder.Services.AddMemoryCache();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
             
             // Event bus
             builder.Services.AddSingleton<IEventBus, InMemoryEventBus>();

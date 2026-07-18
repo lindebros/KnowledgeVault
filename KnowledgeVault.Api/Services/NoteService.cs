@@ -50,8 +50,6 @@ public class NoteService(AppDbContext db,
         db.Notes.Add(note);
         await db.SaveChangesAsync();
 
-        logger.LogInformation("Note create with Id {NoteId}", note.Id);
-        
         if (eventBus is not null)
         {
             await eventBus.PublishAsync(new NoteCreatedEvent
