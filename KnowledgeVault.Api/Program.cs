@@ -1,4 +1,6 @@
-﻿using KnowledgeVault.Api.Middleware;
+﻿using KnowledgeVault.Api.Events;
+using KnowledgeVault.Api.Events.Handlers;
+using KnowledgeVault.Api.Middleware;
 using KnowledgeVault.Api.Persistence;
 using KnowledgeVault.Api.Services;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +19,12 @@ namespace KnowledgeVault.Api
             
             // Register primitives
             builder.Services.AddScoped<NoteService>();
+            
+            // Event bus
+            builder.Services.AddSingleton<IEventBus, InMemoryEventBus>();
+            builder.Services.AddTransient<NoteCreatedEventHandler>();
+            builder.Services.AddTransient<NoteUpdatedEventHandler>();
+            builder.Services.AddTransient<NoteDeletedEventHandler>();
             
             // EF Core
             if (builder.Environment.IsEnvironment("Testing"))
@@ -60,6 +68,22 @@ namespace KnowledgeVault.Api
             
             using (var scope = app.Services.CreateScope())
             {
+                var bus = scope.ServiceProvider.GetRequiredService<IEventBus>();
+                var provider = scope.ServiceProvider;
+                var handlerTypes = typeof(Program).Assembly.GetTypes()
+                    .Where(t => t.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventHandler<>)));
+                foreach (var type in handlerTypes)
+                {
+                    foreach (var iface in type.GetInterfaces().Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEventHandler<>)))
+                    {
+                        var eventType = iface.GetGenericArguments()[0];
+                        var handler = provider.GetService(type);
+                        if (handler == null) continue;
+                        var subscribeMethod = typeof(IEventBus).GetMethod("Subscribe")!.MakeGenericMethod(eventType);
+                        subscribeMethod.Invoke(bus, new[] { handler });
+                    }
+                }
+                
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 db.Database.Migrate();
             }
