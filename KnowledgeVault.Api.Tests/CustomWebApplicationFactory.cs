@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 
@@ -13,6 +14,16 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.ConfigureAppConfiguration((ctx, cfg) =>
+        {
+            cfg.AddInMemoryCollection(new Dictionary<string, string>
+            {
+                ["Outbox:IntervalSeconds"] = "1",
+                ["Outbox:BatchSize"] = "10",
+                ["Outbox:MaxAttempts"] = "3"
+            });
+        });
+        
         builder.ConfigureServices(services =>
         {
             var descriptor = services.SingleOrDefault(

@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using KnowledgeVault.Api.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace KnowledgeVault.Api.Events;
 
@@ -8,16 +9,19 @@ public class OutboxPublisher : BackgroundService
 {
     readonly IServiceProvider _provider;
     readonly ILogger<OutboxPublisher> _logger;
-    readonly TimeSpan _interval = TimeSpan.FromSeconds(5); // configurable
+    private readonly OutboxOptions _opts;
 
-    public OutboxPublisher(IServiceProvider provider, ILogger<OutboxPublisher> logger)
+    public OutboxPublisher(IServiceProvider provider, ILogger<OutboxPublisher> logger, IOptions<OutboxOptions> opts)
     {
+        
         _provider = provider;
         _logger = logger;
+        _opts = opts.Value;
     }
     
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        var interval = TimeSpan.FromSeconds(_opts.IntervalSeconds);
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -31,7 +35,7 @@ public class OutboxPublisher : BackgroundService
                 var batch = await db.OutboxEvents
                     .Where(x => x.PublishedAt == null)
                     .OrderBy(x => x.OccurredAt)
-                    .Take(50)
+                    .Take(_opts.BatchSize)
                     .ToListAsync(stoppingToken);
 
                 _logger.LogInformation("Outbox published {OutboxCount} outbox events", batch.Count);
@@ -67,7 +71,7 @@ public class OutboxPublisher : BackgroundService
                 _logger.LogError(ex, "OutboxPublisher top-level error");
             }
 
-            await Task.Delay(_interval, stoppingToken);
+            await Task.Delay(interval, stoppingToken);
         }
     }
 }

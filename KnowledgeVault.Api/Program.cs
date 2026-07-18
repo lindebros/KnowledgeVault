@@ -19,6 +19,7 @@ namespace KnowledgeVault.Api
             
             // Register primitives
             builder.Services.AddScoped<NoteService>();
+            builder.Services.Configure<OutboxOptions>(builder.Configuration.GetSection("Outbox"));
             builder.Services.AddHostedService<OutboxPublisher>();
             builder.Services.AddMemoryCache();
             builder.Services.AddScoped<INotificationService, NotificationService>();

@@ -6,10 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 public class NotesApiTests : IClassFixture<CustomWebApplicationFactory>
 {
+    private readonly CustomWebApplicationFactory _factory;
     private readonly HttpClient _client;
 
     public NotesApiTests(CustomWebApplicationFactory factory)
     {
+        _factory = factory;
         _client = factory.CreateClient();
 
         using var scope = factory.Services.CreateScope();
@@ -27,5 +29,28 @@ public class NotesApiTests : IClassFixture<CustomWebApplicationFactory>
             new { title = "Integration Test", content = "Test content" });
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    }
+    
+    [Fact]
+    public async Task POST_Note_ShouldPublishOutboxEvent()
+    {
+        var response = await _client.PostAsJsonAsync("/api/v1/notes",
+            new { title = "Integration Tests", content = "Test content" });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var published = false;
+        while (sw.Elapsed < TimeSpan.FromSeconds(10))
+        {
+            published = await db.OutboxEvents.AnyAsync(o => o.PublishedAt != null);
+            if (published) break;
+            await Task.Delay(200);
+        }
+
+        Assert.True(published, "Outbox events were not published within timeout");
     }
 }
