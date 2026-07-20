@@ -59,7 +59,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        db.Database.Migrate();
+        // Ensure the relational schema exists for the PostgreSQL test container.
+        db.Database.EnsureCreated();
+        await Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
