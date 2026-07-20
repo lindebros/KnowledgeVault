@@ -1,4 +1,3 @@
-using KnowledgeVault.Api;
 using KnowledgeVault.Api.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -8,10 +7,23 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 
+namespace KnowledgeVault.Api.Tests;
+
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private PostgreSqlContainer _container;
 
+    public CustomWebApplicationFactory()
+    {
+        _container = new PostgreSqlBuilder()
+            .WithImage("postgres:16")
+            .WithDatabase("tests")           
+            .WithUsername("postgres")
+            .WithPassword("postgres")
+            .Build();
+        _container.StartAsync().GetAwaiter().GetResult();
+    }
+    
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureAppConfiguration((ctx, cfg) =>
@@ -43,15 +55,6 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
 
     public async Task InitializeAsync()
     {
-        _container = new PostgreSqlBuilder()
-            .WithImage("postgres:16")
-            .WithDatabase("tests")
-            .WithUsername("postgres")
-            .WithPassword("postgres")
-            .Build();
-
-        await _container.StartAsync();
-
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 

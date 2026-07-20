@@ -2,7 +2,7 @@ trigger:
   - main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-22.04'
 
 steps:
   - task: UseDotNet@2
@@ -12,6 +12,12 @@ steps:
   - script: ls -R
     displayName: Show repo structure
     
+  - script: docker --version || (echo "Docker not found" && exit 1)
+    displayName: Check Docker
+
+  - script: docker info || (echo "Docker daemon not available" && exit 1)
+    displayName: Verify Docker daemon
+
   - script: dotnet restore
     displayName: Restore
 
