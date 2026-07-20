@@ -3,6 +3,7 @@ using System;
 using KnowledgeVault.Api.Contracts.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace KnowledgeVault.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260720180606_AddTagsAndNoteTags")]
+    partial class AddTagsAndNoteTags
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -85,8 +88,8 @@ namespace KnowledgeVault.Api.Migrations
                     b.Property<Guid>("NoteId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("TagId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("TagId")
+                        .HasColumnType("integer");
 
                     b.HasKey("NoteId", "TagId");
 
@@ -128,9 +131,11 @@ namespace KnowledgeVault.Api.Migrations
 
             modelBuilder.Entity("KnowledgeVault.Api.Domain.Tag", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
