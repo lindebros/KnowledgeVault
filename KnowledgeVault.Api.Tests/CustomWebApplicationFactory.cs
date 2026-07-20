@@ -33,25 +33,14 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
                 ["Outbox:IntervalSeconds"] = "1",
                 ["Outbox:BatchSize"] = "10",
                 ["Outbox:MaxAttempts"] = "3",
-                ["Diagnostics:ShowExceptionDetails"] = "true"
+                ["Diagnostics:ShowExceptionDetails"] = "true",
+                ["ConnectionStrings:KnowledgeVault"] = _container.GetConnectionString()
             });
         });
-        
-        builder.ConfigureServices(services =>
-        {
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
 
-            if (descriptor != null)
-                services.Remove(descriptor);
-
-            services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseNpgsql(_container.GetConnectionString());
-                options.ConfigureWarnings(w =>
-                    w.Ignore(RelationalEventId.PendingModelChangesWarning));
-            });
-        });
+        // Let the application register DbContext using the connection string above so Migrate/EnsureCreated
+        // run against the PostgreSQL test container. Avoid re-registering the DbContext here to prevent
+        // multiple provider registrations.
     }
 
     public async Task InitializeAsync()
