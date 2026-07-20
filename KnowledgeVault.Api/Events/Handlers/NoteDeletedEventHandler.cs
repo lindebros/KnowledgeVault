@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
+using KnowledgeVault.Api.Contracts.Persistence;
 using KnowledgeVault.Api.Events.Note;
 using KnowledgeVault.Api.Domain;
-using KnowledgeVault.Api.Persistence;
 using KnowledgeVault.Api.Services;
 using Microsoft.Extensions.Caching.Memory;
 

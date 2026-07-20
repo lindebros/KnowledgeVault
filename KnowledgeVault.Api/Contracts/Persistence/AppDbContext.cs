@@ -1,7 +1,7 @@
 ﻿using KnowledgeVault.Api.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace KnowledgeVault.Api.Persistence;
+namespace KnowledgeVault.Api.Contracts.Persistence;
 
 public class AppDbContext : DbContext
 {

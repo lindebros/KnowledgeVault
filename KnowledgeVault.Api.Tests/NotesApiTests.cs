@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
+using KnowledgeVault.Api.Contracts.Persistence;
 using KnowledgeVault.Api.Contracts.Requests;
 using KnowledgeVault.Api.Contracts.Responses;
-using KnowledgeVault.Api.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

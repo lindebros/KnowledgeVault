@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using KnowledgeVault.Api.Persistence;
+using KnowledgeVault.Api.Contracts.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 

@@ -1,7 +1,7 @@
-﻿using KnowledgeVault.Api.Events;
+﻿using KnowledgeVault.Api.Contracts.Persistence;
+using KnowledgeVault.Api.Events;
 using KnowledgeVault.Api.Events.Handlers;
 using KnowledgeVault.Api.Middleware;
-using KnowledgeVault.Api.Persistence;
 using KnowledgeVault.Api.Services;
 using Microsoft.EntityFrameworkCore;
 

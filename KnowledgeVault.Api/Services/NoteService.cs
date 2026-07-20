@@ -1,8 +1,7 @@
 using System.Text.Json;
+using KnowledgeVault.Api.Contracts.Persistence;
 using KnowledgeVault.Api.Domain;
-using KnowledgeVault.Api.Events;
 using KnowledgeVault.Api.Events.Note;
-using KnowledgeVault.Api.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 

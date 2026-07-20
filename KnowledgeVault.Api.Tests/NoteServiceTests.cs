@@ -1,9 +1,9 @@
-using KnowledgeVault.Api.Persistence;
 using KnowledgeVault.Api.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using KnowledgeVault.Api.Contracts.Persistence;
 using KnowledgeVault.Api.Events.Note;
 
 namespace KnowledgeVault.Api.Tests;
