@@ -2,7 +2,7 @@
 
 namespace KnowledgeVault.Api.Middleware;
 
-public class ExceptionHandlingMiddleware(RequestDelegate next,  ILogger<ExceptionHandlingMiddleware> logger)
+public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger, IWebHostEnvironment env)
 {
     public async Task InvokeAsync(
         HttpContext context)
@@ -29,11 +29,13 @@ public class ExceptionHandlingMiddleware(RequestDelegate next,  ILogger<Exceptio
                 "Unhandled exception occurred while processing request");
             context.Response.StatusCode = 500;
 
+            var message = env != null && env.IsEnvironment("Testing") ? ex.ToString() : "An unexpected error occurred.";
+
             await context.Response.WriteAsJsonAsync(
                 new ErrorResponse
                 {
                     Code = "internal_error",
-                    Message = "An unexpected error occurred."
+                    Message = message
                 });
         }
     }
