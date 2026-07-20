@@ -26,16 +26,14 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyn
     
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // Ensure the application runs under the Testing environment so middleware returns detailed errors
-        builder.UseEnvironment("Testing");
-
         builder.ConfigureAppConfiguration((ctx, cfg) =>
         {
             cfg.AddInMemoryCollection(new Dictionary<string, string>
             {
                 ["Outbox:IntervalSeconds"] = "1",
                 ["Outbox:BatchSize"] = "10",
-                ["Outbox:MaxAttempts"] = "3"
+                ["Outbox:MaxAttempts"] = "3",
+                ["Diagnostics:ShowExceptionDetails"] = "true"
             });
         });
         
