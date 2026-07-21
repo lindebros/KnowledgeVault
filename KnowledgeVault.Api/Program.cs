@@ -3,6 +3,7 @@ using KnowledgeVault.Api.Events;
 using KnowledgeVault.Api.Events.Handlers;
 using KnowledgeVault.Api.Middleware;
 using KnowledgeVault.Api.Services;
+using KnowledgeVault.Api.Settings;
 using Microsoft.EntityFrameworkCore;
 
 namespace KnowledgeVault.Api

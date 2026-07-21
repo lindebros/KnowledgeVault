@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using System.Text.Json;
 using KnowledgeVault.Api.Contracts.Persistence;
 using KnowledgeVault.Api.Events.Note;
+using KnowledgeVault.Api.Settings;
 
 namespace KnowledgeVault.Api.Tests;
 

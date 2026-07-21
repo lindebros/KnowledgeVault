@@ -1,4 +1,4 @@
-namespace KnowledgeVault.Api;
+namespace KnowledgeVault.Api.Settings;
 
 public class NoteSettings
 {
