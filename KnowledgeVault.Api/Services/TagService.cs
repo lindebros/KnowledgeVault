@@ -9,7 +9,7 @@ namespace KnowledgeVault.Api.Services;
 
 public class TagService(AppDbContext db,
     ILogger<TagService> logger,
-    IOptions<TagSettings> tagSettings)
+    IOptions<TagSettings> tagSettings, NoteService noteService)
 {
     public async Task<List<Tag>> GetAllAsync()
     {
@@ -36,6 +36,13 @@ public class TagService(AppDbContext db,
             db.Tags.Add(tag);
             
         }
+
+        var note = await noteService.GetByIdAsync(noteId);
+
+        if (note == null)
+        {
+            throw new InvalidOperationException("Note not found");
+        }
         
         if (tag.NoteTags.Any(nt => nt.NoteId == noteId))
         {
@@ -45,8 +52,8 @@ public class TagService(AppDbContext db,
         
         tag.NoteTags.Add(new NoteTag
         {
-            NoteId = noteId,
-            TagId = tag.Id
+            Note = note,
+            Tag = tag
         });
         
         await db.SaveChangesAsync();

@@ -22,15 +22,21 @@ public class TagServiceTest
 
     private Guid AddNote(AppDbContext db)
     {
+        var service = createNoteService(db);
+        
+        return service.CreateAsync("One", "Content1").Result.Id;
+    }
+    
+    private NoteService createNoteService(AppDbContext db)
+    {
         var options = Options.Create(new NoteSettings
         {
             MaxTitleLength = 200
         });
 
-        var service = new NoteService(db, NullLogger<NoteService>.Instance, options);
-        
-        return service.CreateAsync("One", "Content1").Result.Id;
+        return new NoteService(db, NullLogger<NoteService>.Instance, options);
     }
+
 
     [Fact]
     public async Task GetAllAsync_ShouldReturnAllTags()
@@ -39,8 +45,10 @@ public class TagServiceTest
         var db = CreateDb();
         Guid noteId = AddNote(db);
         
+        var noteService = createNoteService(db);
+        
         var tagOptions = Options.Create(new TagSettings { MaxTitleLength = 100 });
-        var service = new TagService(db, NullLogger<TagService>.Instance, tagOptions);
+        var service = new TagService(db, NullLogger<TagService>.Instance, tagOptions, noteService);
 
         var one = await service.LinkTagToNoteAsync(noteId, new TagRequest { Title = "One" });
         var two = await service.LinkTagToNoteAsync(noteId, new TagRequest { Title = "Two" });
@@ -59,7 +67,8 @@ public class TagServiceTest
         // Arrange
         var db = CreateDb();
         var tagOptions = Options.Create(new TagSettings { MaxTitleLength = 100 });
-        var service = new TagService(db, NullLogger<TagService>.Instance, tagOptions);
+        var noteService = createNoteService(db);
+        var service = new TagService(db, NullLogger<TagService>.Instance, tagOptions, noteService);
 
         // Act
         var all = await service.GetAllAsync();
@@ -77,7 +86,8 @@ public class TagServiceTest
         Guid noteId = AddNote(db);
         
         var tagOptions = Options.Create(new TagSettings { MaxTitleLength = 100 });
-        var service = new TagService(db, NullLogger<TagService>.Instance, tagOptions);
+        var noteService = createNoteService(db);
+        var service = new TagService(db, NullLogger<TagService>.Instance, tagOptions, noteService);
 
         var tag = await service.LinkTagToNoteAsync(noteId, new TagRequest { Title = "Tag" });
 

@@ -1,4 +1,5 @@
-﻿using KnowledgeVault.Api.Contracts.Persistence;
+﻿using System.Text.Json.Serialization;
+using KnowledgeVault.Api.Contracts.Persistence;
 using KnowledgeVault.Api.Events;
 using KnowledgeVault.Api.Events.Handlers;
 using KnowledgeVault.Api.Middleware;
@@ -50,6 +51,9 @@ namespace KnowledgeVault.Api
             
             builder.Services.Configure<NoteSettings>(
                 builder.Configuration.GetSection("NoteSettings"));
+            
+            builder.Services.Configure<TagSettings>(
+                builder.Configuration.GetSection("TagSettings"));
 
             // Swagger
             builder.Services.AddEndpointsApiExplorer();

@@ -1,4 +1,6 @@
-﻿using KnowledgeVault.Api.Contracts.Requests;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
+using KnowledgeVault.Api.Contracts.Requests;
 using KnowledgeVault.Api.Contracts.Responses;
 using KnowledgeVault.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +25,12 @@ public class TagsController(TagService service, ILogger<TagsController> logger) 
     {
         logger.LogInformation("HTTP POST /tags called");
         var tag = await service.LinkTagToNoteAsync(noteId, request);
-        return CreatedAtAction(nameof(GetAll), new { id = tag.Id }, tag);
+        var jsonSettings = new JsonSerializerOptions
+        {
+            ReferenceHandler = ReferenceHandler.Preserve,
+        };
+        var serializedTag = JsonSerializer.Serialize(tag, jsonSettings);
+        
+        return CreatedAtAction(nameof(GetAll), new { id = tag.Id }, serializedTag);
     }
 }
