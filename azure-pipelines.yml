@@ -1,65 +1,80 @@
 trigger:
   - main
 
-pool:
-  vmImage: 'ubuntu-22.04'
+variables:
+  imageName: 'knowledgevault-api'
 
-steps:
-  - task: UseDotNet@2
-    inputs:
-      version: '9.0.x'
-      
-  - script: ls -R
-    displayName: Show repo structure
-    
-  - script: docker --version || (echo "Docker not found" && exit 1)
-    displayName: Check Docker
-
-  - script: docker info || (echo "Docker daemon not available" && exit 1)
-    displayName: Verify Docker daemon
-
-  - script: dotnet restore
-    displayName: Restore
-
-  - script: dotnet build --no-restore
-    displayName: Build
-
-  - script: |
-      dotnet test ./KnowledgeVault.Api.Tests/KnowledgeVault.Api.Tests.csproj --no-build -v diag --logger "trx;LogFileName=tests.trx" > test_output.log 2>&1 || true
-    displayName: Run tests (diag, capture)
-
-  - script: |
-      tail -n 2000 test_output.log
-    displayName: Show test log
-
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFormat: 'VSTest'
-      testResultsFiles: '**/tests.trx'
-      failTaskOnFailedTests: true
-    
-  - task: Docker@2
-    displayName: Build Docker Image
-    inputs:
-      command: build
-      repository: knowledgevault-api
-      Dockerfile: '**/Dockerfile'
-      tags: |
-        $(Build.BuildId)
-
-  - stage: deploy
+stages:
+  - stage: BuildAndTest
+    displayName: Build and test
     jobs:
-      - deployment: DeployWeb
-        displayName: deploy Web App
+      - job: Build
         pool:
           vmImage: 'ubuntu-22.04'
-        # creates an environment if it doesn't exist
+        steps:
+          - task: UseDotNet@2
+            inputs:
+              version: '9.0.x'
+
+          - script: ls -R
+            displayName: Show repo structure
+
+          - script: docker --version || (echo "Docker not found" && exit 1)
+            displayName: Check Docker
+
+          - script: docker info || (echo "Docker daemon not available" && exit 1)
+            displayName: Verify Docker daemon
+
+          - script: dotnet restore
+            displayName: Restore
+
+          - script: dotnet build --no-restore
+            displayName: Build
+
+          - script: |
+              dotnet test ./KnowledgeVault.Api.Tests/KnowledgeVault.Api.Tests.csproj --no-build -v diag --logger "trx;LogFileName=tests.trx" > test_output.log 2>&1 || true
+            displayName: Run tests (diag, capture)
+
+          - script: |
+              tail -n 2000 test_output.log
+            displayName: Show test log
+
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: 'VSTest'
+              testResultsFiles: '**/tests.trx'
+              failTaskOnFailedTests: true
+
+          - task: Docker@2
+            displayName: Build Docker Image
+            inputs:
+              command: build
+              repository: $(imageName)
+              Dockerfile: '**/Dockerfile'
+              tags: |
+                $(Build.BuildId)
+
+  - stage: Deploy
+    displayName: Deploy to environment
+    dependsOn: BuildAndTest
+    condition: succeeded()
+    jobs:
+      - deployment: DeployWeb
+        displayName: Deploy Web App
         environment:
           name: 'KnowledgeVault_Testing'
-          resourceName: myVM
-          resourceType: virtualMachine
+          resourceName: 'myVM'
+          resourceType: 'virtualMachine'
         strategy:
           runOnce:
             deploy:
               steps:
-                - script: echo Hello world
+                - checkout: self
+                - script: |
+                    echo "Deploying $(imageName):$(Build.BuildId)"
+                    # Replace these with your real Docker commands
+                    # docker pull <registry>/<image>:$(Build.BuildId)
+                    # docker stop knowledgevault-api || true
+                    # docker rm knowledgevault-api || true
+                    # docker run -d --name knowledgevault-api -p 8080:8080 <registry>/<image>:$(Build.BuildId)
+                  displayName: Deploy container
