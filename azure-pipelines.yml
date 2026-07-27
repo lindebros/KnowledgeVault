@@ -3,9 +3,9 @@ trigger:
 
 variables:
   imageName: 'knowledgevault-api'
-  acrName: 'knowledgevaultacr-dnfgacd6aab3d5a0' # <-- replace with your ACR name
+  acrName: 'knowledgevaultacr-dnfgacd6aab3d5a0'
   acrLoginServer: '$(acrName).azurecr.io'
-  acrServiceConnection: '$(acrName).azurecr.io' # <-- replace with your Azure DevOps service connection name
+  acrServiceConnection: 'knowledgevaultacr' 
 
 stages:
   - stage: BuildAndTest
