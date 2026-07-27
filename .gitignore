@@ -26,4 +26,7 @@ KnowledgeVault/wwwroot/node_modules
 # Mac
 .DS_Store
 
+# No keys
+*.pem
+
 # End of https://www.toptal.com/developers/gitignore/api/dotnetcore

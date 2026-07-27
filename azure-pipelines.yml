@@ -3,6 +3,9 @@ trigger:
 
 variables:
   imageName: 'knowledgevault-api'
+  acrName: 'knowledgevaultacr-dnfgacd6aab3d5a0' # <-- replace with your ACR name
+  acrLoginServer: '$(acrName).azurecr.io'
+  acrServiceConnection: '$(acrName).azurecr.io' # <-- replace with your Azure DevOps service connection name
 
 stages:
   - stage: BuildAndTest
@@ -18,12 +21,6 @@ stages:
 
           - script: ls -R
             displayName: Show repo structure
-
-          - script: docker --version || (echo "Docker not found" && exit 1)
-            displayName: Check Docker
-
-          - script: docker info || (echo "Docker daemon not available" && exit 1)
-            displayName: Verify Docker daemon
 
           - script: dotnet restore
             displayName: Restore
@@ -45,22 +42,32 @@ stages:
               testResultsFiles: '**/tests.trx'
               failTaskOnFailedTests: true
 
-          - task: Docker@2
-            displayName: Build Docker Image
-            inputs:
-              command: build
-              repository: $(imageName)
-              Dockerfile: '**/Dockerfile'
-              tags: |
-                $(Build.BuildId)
-
-  - stage: Deploy
-    displayName: Deploy to environment
+  - stage: PublishAndDeploy
+    displayName: Publish image and deploy
     dependsOn: BuildAndTest
     condition: succeeded()
     jobs:
+      - job: PublishImage
+        pool:
+          vmImage: 'ubuntu-22.04'
+        steps:
+          - checkout: self
+
+          - task: Docker@2
+            displayName: Build and push Docker image
+            inputs:
+              command: buildAndPush
+              containerRegistry: $(acrServiceConnection)
+              repository: $(imageName)
+              Dockerfile: 'KnowledgeVault.Api/Dockerfile'
+              buildContext: '$(Build.SourcesDirectory)'
+              tags: |
+                $(Build.BuildId)
+                latest
+
       - deployment: DeployWeb
-        displayName: Deploy Web App
+        displayName: Deploy Docker container to VM
+        dependsOn: PublishImage
         environment:
           name: 'KnowledgeVault_Testing'
           resourceName: 'knowledgeVault-VM'
@@ -70,11 +77,23 @@ stages:
             deploy:
               steps:
                 - checkout: self
+
+                - task: Docker@2
+                  displayName: Login to ACR
+                  inputs:
+                    command: login
+                    containerRegistry: $(acrServiceConnection)
+
                 - script: |
-                    echo "Deploying $(imageName):$(Build.BuildId)"
-                    # Replace these with your real Docker commands
-                    # docker pull <registry>/<image>:$(Build.BuildId)
-                    # docker stop knowledgevault-api || true
-                    # docker rm knowledgevault-api || true
-                    # docker run -d --name knowledgevault-api -p 8080:8080 <registry>/<image>:$(Build.BuildId)
-                  displayName: Deploy container
+                    set -e
+                    IMAGE="$(acrLoginServer)/$(imageName):$(Build.BuildId)"
+                    echo "Pulling $IMAGE"
+                    docker pull "$IMAGE"
+                    docker stop knowledgevault-api || true
+                    docker rm knowledgevault-api || true
+                    docker run -d \
+                      --name knowledgevault-api \
+                      -p 8080:8080 \
+                      -e ASPNETCORE_URLS=http://+:8080 \
+                      "$IMAGE"
+                  displayName: Pull and run container
