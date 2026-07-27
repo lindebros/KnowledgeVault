@@ -63,7 +63,7 @@ stages:
         displayName: Deploy Web App
         environment:
           name: 'KnowledgeVault_Testing'
-          resourceName: 'myVM'
+          resourceName: 'knowledgeVault-VM'
           resourceType: 'virtualMachine'
         strategy:
           runOnce:
