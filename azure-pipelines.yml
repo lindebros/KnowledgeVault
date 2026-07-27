@@ -46,3 +46,20 @@ steps:
       Dockerfile: '**/Dockerfile'
       tags: |
         $(Build.BuildId)
+
+  - stage: deploy
+    jobs:
+      - deployment: DeployWeb
+        displayName: deploy Web App
+        pool:
+          vmImage: 'ubuntu-22.04'
+        # creates an environment if it doesn't exist
+        environment:
+          name: 'KnowledgeVault_Testing'
+          resourceName: myVM
+          resourceType: virtualMachine
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo Hello world
