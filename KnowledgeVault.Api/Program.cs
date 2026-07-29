@@ -64,11 +64,8 @@ namespace KnowledgeVault.Api
             app.UseMiddleware<ExceptionHandlingMiddleware>();
             
             // Swagger UI
-            if (builder.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI();
             
             if (!app.Environment.IsDevelopment())
             {
