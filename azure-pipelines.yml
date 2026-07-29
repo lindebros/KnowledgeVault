@@ -86,14 +86,38 @@ stages:
 
                 - script: |
                     set -e
-                    IMAGE="$(acrLoginServer)/$(imageName):$(Build.BuildId)"
-                    echo "Pulling $IMAGE"
-                    docker pull "$IMAGE"
+
+                    # PostgreSQL connection details (from docker-compose)
+                    DB_USER="postgres"
+                    DB_PASSWORD="postgres"
+                    DB_NAME="knowledgevault"
+                    API_IMAGE="$(acrLoginServer)/$(imageName):$(Build.BuildId)"
+
+                    echo "Starting PostgreSQL..."
+                    docker stop knowledgevault-db || true
+                    docker rm knowledgevault-db || true
+                    docker run -d \
+                      --name knowledgevault-db \
+                      -e POSTGRES_USER=$DB_USER \
+                      -e POSTGRES_PASSWORD=$DB_PASSWORD \
+                      -e POSTGRES_DB=$DB_NAME \
+                      -p 5432:5432 \
+                      postgres:16
+
+                    echo "Waiting for PostgreSQL to be ready..."
+                    sleep 10
+
+                    echo "Pulling and starting API..."
                     docker stop knowledgevault-api || true
                     docker rm knowledgevault-api || true
                     docker run -d \
                       --name knowledgevault-api \
                       -p 8080:8080 \
                       -e ASPNETCORE_URLS=http://+:8080 \
-                      "$IMAGE"
-                  displayName: Pull and run container
+                      -e ASPNETCORE_ENVIRONMENT=Production \
+                      -e ConnectionStrings__KnowledgeVault="Host=knowledgevault-db;Database=$DB_NAME;Username=$DB_USER;Password=$DB_PASSWORD" \
+                      --link knowledgevault-db:knowledgevault-db \
+                      $API_IMAGE
+
+                    echo "Deployment complete"
+                  displayName: Deploy PostgreSQL and API containers
